@@ -14,13 +14,13 @@ class Member
 
   public function connectDatabase()
   {
-      define('DSN','mysql:host=localhost;dbname=hw_object;charset=utf8');
-      define('USER','testuser');
-      define('PASSWORD','9999');
+      $dsn = 'mysql:host=localhost;dbname=hw_object;charset=utf8';
+      $user ='testuser';
+      $password = '9999';
 
       try
       {
-        return new PDO(DSN,USER,PASSWORD);
+        return new PDO($dsn,$user,$password);
       }
       catch(PDOException $e)
       {
