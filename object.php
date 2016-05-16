@@ -1,85 +1,73 @@
 <?php
 
-require_once('config.php');
-require_once('functions.php');
-
 
 class Member
 {
-  public $name;
-  public $age;
-  public $email;
+  public $data;
+  public $dbh;
+
+  public function __construct()
+  {
+      $this->dbh = $this->connectDatabase();
+
+  }
+
+  public function connectDatabase()
+  {
+      define('DSN','mysql:host=localhost;dbname=hw_object;charset=utf8');
+      define('USER','testuser');
+      define('PASSWORD','9999');
+
+      try
+      {
+        return new PDO(DSN,USER,PASSWORD);
+      }
+      catch(PDOException $e)
+      {
+        echo $e->getMessage();
+        exit;
+      }
+  }
+
 
   public function set($data)
   {
-    $this->name = $data['name'];
-    $this->age = $data['age'];
-    $this->email = $data['email'];
+    $this->data = $data;
   }
 
   public function insert()
   {
-
-    $dbh = connectDatabase();
-
-    $sql = "select * from members order by id desc limit 1";
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-    $row1 = $stmt->fetch();
-    // var_dump($row1["id"]);
-
+    $dbh = $this->dbh;
     $sql= "insert into members(name,age,email,created_at) values(:name,:age,:email,now())";
     $stmt = $dbh->prepare($sql);
-    $stmt->bindParam(':name',$this->name);
-    $stmt->bindParam(':age',$this->age);
-    $stmt->bindParam(':email',$this->email);
-    $stmt->execute();
+    $stmt->bindParam(':name',$this->data['name']);
+    $stmt->bindParam(':age',$this->data['age']);
+    $stmt->bindParam(':email',$this->data['email']);
+    $result = $stmt->execute();
 
-    $sql = "select * from members order by id desc limit 1";
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-    $row2 = $stmt->fetch();
-    // var_dump($row2["id"]);
-
-    //insert前後で､idが増えているかで判定を行ったが別の方法ありそう
-    if(!$row1["id"] == $row2["id"])
-    {
-      echo 'true';
-    }
-    else
-    {
-      echo 'false';
-    }
-
+    return $result;
   }
 
   public function findByEmail($a)
   {
-    $dbh = connectDatabase();
+    $dbh = $this->dbh;
     $sql= "select * from members where email = :email";
     $stmt = $dbh->prepare($sql);
     $stmt->bindParam(':email',$a);
     $stmt->execute();
     $row = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // ここから､コピペのため解説ほしい
-    $obj = new stdClass;
-    foreach ($row as $key => $val) {
-      $obj->$key = $val;
-      return $val;
-    }
-    // ここまで
-
-    if(!$row)
+    if(!empty($row))
     {
-      return 'false';
+      return $row[0];
     }
+    return false;
  }
 
  public function delete($e)
  {
-    $dbh = connectDatabase();
-    $sql= "sdelete from members where id = :id";
+    $dbh = $this->dbh;
+    $sql= "delete from members where id = :id";
     $stmt = $dbh->prepare($sql);
     $stmt->bindParam(':id',$e);
     $stmt->execute();
@@ -100,7 +88,7 @@ $member->set(array(
 $result = $member->insert();
 
 // $data = $member->findByEmail('test@example.com');
-var_dump($data['id']);
-$result = $member->delete($data['id']);
+// var_dump($data['id']);
+// $result = $member->delete($data['id']);
 
-$data = $member->findByEmail('test@example.com');
+// $data = $member->findByEmail('test@example.com');
